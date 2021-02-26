@@ -12,3 +12,7 @@ repositories {
 }
 
 apply plugin: "kotlin"
+
+dependencies {
+    implementation "com.google.guava:guava:18.0"
+}
