@@ -1,0 +1,14 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.31"
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+apply plugin: "kotlin"
