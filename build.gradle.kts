@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.4.31"
+    kotlin("jvm") version "1.4.32"
     `maven-publish`
 }
 
@@ -13,8 +13,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("java") {
-            from(components["java"])
+        create<MavenPublication>("kotlin") {
+            from(components["kotlin"])
         }
     }
 }
