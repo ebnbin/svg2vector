@@ -21,6 +21,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.utils.PositionXmlParser;
 import com.google.common.base.Strings;
+import kotlin.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -52,7 +53,7 @@ class SvgTree {
     private SvgGroupNode mRoot;
     private String mFileName;
 
-    private ArrayList<String> mErrorLines = new ArrayList<String>();
+    private ArrayList<Pair<String, SvgLogLevel>> mErrorLines = new ArrayList<>();
 
     private boolean mHasLeafNode = false;
 
@@ -115,10 +116,10 @@ class SvgTree {
         if (!Strings.isNullOrEmpty(s)) {
             if (node != null) {
                 SourcePosition position = getPosition(node);
-                mErrorLines.add(level.name() + "@ line " + (position.getStartLine() + 1) +
-                                " " + s + "\n");
+                mErrorLines.add(new Pair<>(level.name() + "@ line " + (position.getStartLine() + 1) +
+                                " " + s + "\n", level));
             } else {
-                mErrorLines.add(s);
+                mErrorLines.add(new Pair<>(s, level));
             }
         }
     }
@@ -127,15 +128,21 @@ class SvgTree {
      * @return Error log. Empty string if there are no errors.
      */
     @NonNull
-    public String getErrorLog() {
+    public Pair<String, Boolean> getErrorLog(SvgLogLevel svgLogLevel) {
         StringBuilder errorBuilder = new StringBuilder();
-        if (!mErrorLines.isEmpty()) {
-            errorBuilder.append("In " + mFileName + ":\n");
+        boolean error = false;
+        for (Pair<String, SvgLogLevel> log : mErrorLines) {
+            if (svgLogLevel != SvgLogLevel.ERROR || log.getSecond().equals(SvgLogLevel.ERROR)) {
+                errorBuilder.append(log.getFirst());
+            }
+            if (log.getSecond().equals(SvgLogLevel.ERROR)) {
+                error = true;
+            }
         }
-        for (String log : mErrorLines) {
-            errorBuilder.append(log);
+        if (errorBuilder.length() > 0) {
+            errorBuilder.insert(0, "In " + mFileName + ":\n");
         }
-        return errorBuilder.toString();
+        return new Pair<>(errorBuilder.toString(), error);
     }
 
     /**

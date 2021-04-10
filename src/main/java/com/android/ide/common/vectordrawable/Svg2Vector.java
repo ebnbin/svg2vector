@@ -19,6 +19,7 @@ package com.android.ide.common.vectordrawable;
 import com.android.annotations.NonNull;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import kotlin.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -630,11 +631,11 @@ public class Svg2Vector {
         }
     }
 
-    private static final String head = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n";
+    private static final String head = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<vector\n    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n";
 
     private static String getSizeString(float w, float h, float scaleFactor) {
-        String size = "        android:width=\"" + (int) (w * scaleFactor) + "dp\"\n" +
-                      "        android:height=\"" + (int) (h * scaleFactor) + "dp\"\n";
+        String size = "    android:width=\"" + (int) (w * scaleFactor) + "dp\"\n" +
+                      "    android:height=\"" + (int) (h * scaleFactor) + "dp\"\n";
         return size;
     }
 
@@ -647,8 +648,8 @@ public class Svg2Vector {
 
         fw.write(getSizeString(svgTree.getWidth(), svgTree.getHeight(), svgTree.getScaleFactor()));
 
-        fw.write("        android:viewportWidth=\"" + viewportWidth + "\"\n");
-        fw.write("        android:viewportHeight=\"" + viewportHeight + "\">\n");
+        fw.write("    android:viewportWidth=\"" + viewportWidth + "\"\n");
+        fw.write("    android:viewportHeight=\"" + viewportHeight + "\">\n");
 
         svgTree.normalize();
         // TODO: this has to happen in the tree mode!!!
@@ -662,6 +663,10 @@ public class Svg2Vector {
         svgTree.getRoot().writeXML(fw);
     }
 
+    public static String parseSvgToXml(File inputSVG, OutputStream outStream) {
+        return parseSvgToXml(inputSVG, outStream, SvgTree.SvgLogLevel.ERROR).getFirst();
+    }
+
     /**
      * Convert a SVG file into VectorDrawable's XML content, if no error is found.
      *
@@ -671,18 +676,18 @@ public class Svg2Vector {
      * @return the error messages, which contain things like all the tags
      *         VectorDrawble don't support or exception message.
      */
-    public static String parseSvgToXml(File inputSVG, OutputStream outStream) {
+    public static Pair<String, Boolean> parseSvgToXml(File inputSVG, OutputStream outStream, SvgTree.SvgLogLevel svgLogLevel) {
         // Write all the error message during parsing into SvgTree. and return here as getErrorLog().
         // We will also log the exceptions here.
-        String errorLog = null;
+        Pair<String, Boolean> errorLog = null;
         try {
             SvgTree svgTree = parse(inputSVG);
-            errorLog = svgTree.getErrorLog();
+            errorLog = svgTree.getErrorLog(svgLogLevel);
             if (svgTree.getHasLeafNode()) {
                 writeFile(outStream, svgTree);
             }
         } catch (Exception e) {
-            errorLog = "EXCEPTION in parsing " + inputSVG.getName() + ":\n" + e.getMessage();
+            errorLog = new Pair<>("EXCEPTION in parsing " + inputSVG.getName() + ":\n" + e.getMessage(), true);
         }
         return errorLog;
     }
