@@ -2,13 +2,14 @@ package com.android.ide.common.vectordrawable
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.Locale
 
 internal fun svgToXml(
     fileList: List<File>,
-    outputFile: (File) -> File = {
-        File(it.parent, "${it.nameWithoutExtension}.xml")
-    },
     logWarning: Boolean = false,
+    outputFile: (File) -> File = {
+        File(it.parent, "${it.nameWithoutExtension.toLowerCase(Locale.ROOT).replace(Regex("[^0-9_a-z]"), "_")}.xml")
+    },
 ) {
     var success = 0
     var failure = 0
